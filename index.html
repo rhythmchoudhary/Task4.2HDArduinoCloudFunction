@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Light LED Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .traffic-light {
+            width: 150px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .light {
+            margin-bottom: 20px;
+        }
+
+        .light:last-child {
+            margin-bottom: 0;
+        }
+
+        .light label {
+            display: block;
+            margin-bottom: 5px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .light button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #redStatus {
+            color: red;
+        }
+
+        #greenStatus {
+            color: green;
+        }
+
+        #yellowStatus {
+            color: yellow;
+        }
+
+        .light button.on {
+            background-color: green;
+        }
+
+        .light button.off {
+            background-color: red;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        const firebaseUrl = "https://arduinocloudfunction-67337-default-rtdb.asia-southeast1.firebasedatabase.app/leds/";
+
+        function setLED(color, state) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("PUT", `${firebaseUrl}${color}.json`, true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.send(JSON.stringify(state));
+
+            // Update the button label and color state display
+            document.getElementById(`${color}Status`).innerText = state === "on" ? "On" : "Off";
+            document.getElementById(`${color}Status`).style.color = state === "on" ? color : "gray";
+        }
+
+        function updateLEDStates() {
+            const colors = ["red", "green", "yellow"];
+            colors.forEach(color => {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", `${firebaseUrl}${color}.json`, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const state = JSON.parse(xhr.responseText);
+                        document.getElementById(`${color}Status`).innerText = state === "on" ? "On" : "Off";
+                        document.getElementById(`${color}Status`).style.color = state === "on" ? color : "gray";
+                    }
+                };
+                xhr.send();
+            });
+        }
+
+        // Update the LED states every 5 seconds to reflect changes
+        setInterval(updateLEDStates, 5000);
+
+        // Initial load of LED states
+        window.onload = updateLEDStates;
+    </script>
+</head>
+<body>
+    <h1>Traffic Light LED Control</h1>
+    <div class="traffic-light">
+        <div class="light">
+            <label>Red LED:</label>
+            <button class="on" onclick="setLED('red', 'on')">On</button>
+            <button class="off" onclick="setLED('red', 'off')">Off</button>
+            <span id="redStatus" style="color: gray;">Loading...</span>
+        </div>
+        <div class="light">
+            <label>Green LED:</label>
+            <button class="on" onclick="setLED('green', 'on')">On</button>
+            <button class="off" onclick="setLED('green', 'off')">Off</button>
+            <span id="greenStatus" style="color: gray;">Loading...</span>
+        </div>
+        <div class="light">
+            <label>Yellow LED:</label>
+            <button class="on" onclick="setLED('yellow', 'on')">On</button>
+            <button class="off" onclick="setLED('yellow', 'off')">Off</button>
+            <span id="yellowStatus" style="color: gray;">Loading...</span>
+        </div>
+    </div>
+</body>
+</html>
